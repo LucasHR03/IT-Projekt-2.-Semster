@@ -3,7 +3,7 @@ import tkinter as tk
 data = ( (0,51), (1,50), (2,50), (3,50), (4,49), (5,48),
          (6,49),(7,51),(8,49),(9,51),(10,49))
 'Få data ind fra en fil i stedet bla bla bla bla'
-'jeg har skrevet en kommentar mere'
+
 class Graf(tk.Frame):
 
     def __init__(self, h, w, data):

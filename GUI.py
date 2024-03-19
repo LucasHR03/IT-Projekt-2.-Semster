@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 
 
+
 class MyGUI:
 
     def __init__(self):
@@ -16,7 +17,7 @@ class MyGUI:
         self.label_temp = tk.Label(self.window, text="Temp-Måling:", font=('Arial', 14))
         self.label_temp.grid(row=0, column=0, padx=10, pady=5)
 
-        self.button_temp = tk.Button(self.window, text="Vis Temp-Måling", font=('Arial', 12))
+        self.button_temp = tk.Button(self.window, text="Vis Temp-Måling", font=('Arial', 12), command=self.show_temp)
         self.button_temp.grid(row=0, column=1, padx=10, pady=5)
 
         # Opretter labels og button for puls
@@ -66,6 +67,9 @@ class MyGUI:
         # Opretter en label til at vise beskeden
         label = tk.Label(new_window, text="Indtast grænseværdier her for puls!", font=('Arial', 12))
         label.pack(padx=10, pady=5)
+
+    def show_temp(self):
+
 
     def show_graf(self):
         if self.frame_graf.winfo_ismapped():

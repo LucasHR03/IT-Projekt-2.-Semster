@@ -82,7 +82,7 @@ class MyGUI:
             run = True
             ser.setDTR(run)
 
-            # Åbn filen i append-tilstand
+            #Åbn filen i append-tilstand
             fil = open(filnavn, "a")
 
             while run:

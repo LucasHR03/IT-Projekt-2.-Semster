@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
-
-
+import serial
+import io
+import sys
 
 class MyGUI:
 
@@ -69,7 +70,44 @@ class MyGUI:
         label.pack(padx=10, pady=5)
 
     def show_temp(self):
+        ny_window = tk.Toplevel(self.window)
+        ny_window.title("Vis Temp")
+        print("Starter måling af temperatur...")
+        try:
+            ser = serial.Serial('/dev/cu.usbserial-110', 9600, timeout=1)
+            sio = io.TextIOWrapper(io.BufferedReader(ser))
+            filnavn = "Uge12temp.txt"
 
+            print("Tænder temperatursensor!")
+            run = True
+            ser.setDTR(run)
+
+            # Åbn filen i append-tilstand
+            fil = open(filnavn, "a")
+
+            while run:
+                try:
+                    l = sio.readline()
+                    if l:
+                        l = float(l[1:-2])
+                        print(l)
+
+                        # Skriv strengen til filen (f-string)
+                        fil.write(f"{round(l)}\n")
+                    else:
+                        print(".", end=" ")
+                        sys.stdout.flush()
+                except KeyboardInterrupt:
+                    run = False
+
+            print("\nSlukker temperatursensor")
+            ser.setDTR(run)
+            ser.close()
+            fil.close()
+            print("Måling af temperatur afsluttet.")
+        except serial.SerialException as e:
+            print("Fejl:", e)
+            messagebox.showerror("Fejl", "Kunne ikke åbne serielt port. Kontroller forbindelsen til sensoren.")
 
     def show_graf(self):
         if self.frame_graf.winfo_ismapped():

@@ -1,10 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
 import serial
-import threading
 import queue
-import queue  # Importer queue-modulet til at arbejde med køer
-import threading  # Importer threading-modulet til at arbejde med tråde
+import threading
 
 class TemperatureSensor:
     def __init__(self, port):
@@ -25,12 +23,13 @@ class TemperatureSensor:
             try:
                 # Åbner seriel forbindelse til sensoren
                 with serial.Serial(self.port, 9600, timeout=1) as ser:
-                    # Læser en linje fra sensoren og dekoder den fra bytes til streng
-                    temperature_reading = ser.readline().decode('utf-8').strip()
-                    # Fjerner eventuelle '+' og 'C' tegn fra temperaturen og konverterer den til float
-                    temperature_value = temperature_reading.strip('+').rstrip('C')
-                    # Lægger den aflæste temperatur i køen
-                    self.temperature_queue.put(float(temperature_value))
+                    while True:
+                        # Læser en linje fra sensoren og dekoder den fra bytes til streng
+                        temperature_reading = ser.readline().decode('utf-8').strip()
+                        # Kontrollerer om strengen er tom, hvis ikke, konverterer den til float
+                        if temperature_reading:
+                            temperature_value = temperature_reading.strip('+').rstrip('C')
+                            self.temperature_queue.put(float(temperature_value))
             except serial.SerialException as e:
                 # Viser en fejlmeddelelse, hvis der opstår en fejl med seriel forbindelse
                 messagebox.showerror("Error", f"Serial port error: {e}")
@@ -51,14 +50,16 @@ class MyGUI:
         self.temperature_sensor = TemperatureSensor('/dev/cu.usbserial-110')
 
         self.create_widgets()
+        self.update_temperature()  # Start opdatering af temperaturen
 
     def create_widgets(self):
-        # Opretter labels og button for temp
+        # Opretter labels for temp
         self.label_temp = tk.Label(self.window, text="Temp-Måling:", font=('Arial', 14))
         self.label_temp.grid(row=0, column=0, padx=10, pady=5)
 
-        self.button_temp = tk.Button(self.window, text="Vis Temp-Måling", font=('Arial', 12), command=self.show_temp)
-        self.button_temp.grid(row=0, column=1, padx=10, pady=5)
+        # Opretter label til at vise temperaturen
+        self.label_temperature_value = tk.Label(self.window, text="", font=('Arial', 14))
+        self.label_temperature_value.grid(row=0, column=1, padx=10, pady=5)
 
         # Opretter labels og button for puls
         self.label_puls = tk.Label(self.window, text="Puls-Måling:", font=('Arial', 14))
@@ -108,12 +109,13 @@ class MyGUI:
         label = tk.Label(new_window, text="Indtast grænseværdier her for puls!", font=('Arial', 12))
         label.pack(padx=10, pady=5)
 
-    def show_temp(self):
+    def update_temperature(self):
+        # Opdaterer temperaturen
         temperature = self.temperature_sensor.get_latest_temperature()
         if temperature is not None:
-            messagebox.showinfo("Temperature", f"Current temperature reading: {temperature}")
-        else:
-            messagebox.showwarning("Warning", "No temperature data available yet.")
+            # Opdaterer label med den seneste temperaturmåling
+            self.label_temperature_value.config(text=f"{temperature} °C")
+        self.window.after(1000, self.update_temperature)  # Kalder metoden igen efter 1 sekund for at opdatere temperaturen kontinuerligt
 
     def show_graf(self):
         if self.frame_graf.winfo_ismapped():

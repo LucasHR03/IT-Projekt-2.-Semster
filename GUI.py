@@ -1,15 +1,54 @@
 import tkinter as tk
 from tkinter import messagebox
 import serial
-import io
-import sys
+import threading
+import queue
+import queue  # Importer queue-modulet til at arbejde med køer
+import threading  # Importer threading-modulet til at arbejde med tråde
+
+class TemperatureSensor:
+    def __init__(self, port):
+        # Initialiserer klassen med den angivne port og opretter en tom liste til temperaturdata
+        self.port = port
+        self.temperature_data = []
+
+        # Opretter en kø til at gemme temperaturmålinger
+        self.temperature_queue = queue.Queue()
+
+        # Opretter en tråd til at læse temperaturdata fra sensoren i baggrunden
+        self.reading_thread = threading.Thread(target=self._read_temperature, daemon=True)
+        self.reading_thread.start()  # Starter tråden
+
+    # Metode til at læse temperaturdata fra sensoren og gemme dem i køen
+    def _read_temperature(self):
+        while True:
+            try:
+                # Åbner seriel forbindelse til sensoren
+                with serial.Serial(self.port, 9600, timeout=1) as ser:
+                    # Læser en linje fra sensoren og dekoder den fra bytes til streng
+                    temperature_reading = ser.readline().decode('utf-8').strip()
+                    # Fjerner eventuelle '+' og 'C' tegn fra temperaturen og konverterer den til float
+                    temperature_value = temperature_reading.strip('+').rstrip('C')
+                    # Lægger den aflæste temperatur i køen
+                    self.temperature_queue.put(float(temperature_value))
+            except serial.SerialException as e:
+                # Viser en fejlmeddelelse, hvis der opstår en fejl med seriel forbindelse
+                messagebox.showerror("Error", f"Serial port error: {e}")
+
+    # Metode til at hente den seneste temperaturmåling fra køen
+    def get_latest_temperature(self):
+        if not self.temperature_queue.empty():
+            # Hvis køen ikke er tom, hentes og returneres den seneste temperaturmåling
+            return self.temperature_queue.get()
+        return None  # Returnerer None, hvis køen er tom
 
 class MyGUI:
-
     def __init__(self):
         self.window = tk.Tk()
         self.window.title("Prototype-GUI")
         self.window.geometry("500x300")
+
+        self.temperature_sensor = TemperatureSensor('/dev/cu.usbserial-110')
 
         self.create_widgets()
 
@@ -70,44 +109,11 @@ class MyGUI:
         label.pack(padx=10, pady=5)
 
     def show_temp(self):
-        ny_window = tk.Toplevel(self.window)
-        ny_window.title("Vis Temp")
-        print("Starter måling af temperatur...")
-        try:
-            ser = serial.Serial('/dev/cu.usbserial-110', 9600, timeout=1)
-            sio = io.TextIOWrapper(io.BufferedReader(ser))
-            filnavn = "Uge12temp.txt"
-
-            print("Tænder temperatursensor!")
-            run = True
-            ser.setDTR(run)
-
-            #Åbn filen i append-tilstand
-            fil = open(filnavn, "a")
-
-            while run:
-                try:
-                    l = sio.readline()
-                    if l:
-                        l = float(l[1:-2])
-                        print(l)
-
-                        # Skriv strengen til filen (f-string)
-                        fil.write(f"{round(l)}\n")
-                    else:
-                        print(".", end=" ")
-                        sys.stdout.flush()
-                except KeyboardInterrupt:
-                    run = False
-
-            print("\nSlukker temperatursensor")
-            ser.setDTR(run)
-            ser.close()
-            fil.close()
-            print("Måling af temperatur afsluttet.")
-        except serial.SerialException as e:
-            print("Fejl:", e)
-            messagebox.showerror("Fejl", "Kunne ikke åbne serielt port. Kontroller forbindelsen til sensoren.")
+        temperature = self.temperature_sensor.get_latest_temperature()
+        if temperature is not None:
+            messagebox.showinfo("Temperature", f"Current temperature reading: {temperature}")
+        else:
+            messagebox.showwarning("Warning", "No temperature data available yet.")
 
     def show_graf(self):
         if self.frame_graf.winfo_ismapped():

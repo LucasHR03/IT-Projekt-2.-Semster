@@ -12,6 +12,12 @@ class HealthMonitor:
 
 class PulseMonitor(HealthMonitor):
     def __init__(self, name):
+        self.name = name
+
+    def measure(self):
+        raise NotImplementedError("Subclasses must implement measure method")
+
+    def __init__(self, name):
         super().__init__(name)
         self.current_pulse = 60  # Initial pulse rate
 

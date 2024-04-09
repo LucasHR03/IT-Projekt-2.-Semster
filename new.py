@@ -1,8 +1,9 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, simpledialog
 import serial
 import queue
 import threading
+import matplotlib.pyplot as plt
 
 class TemperatureSensor:
     def __init__(self, port):
@@ -17,10 +18,9 @@ class TemperatureSensor:
         self.reading_thread = threading.Thread(target=self._read_temperature, daemon=True)
         self.reading_thread.start()  # Starter tråden
 
-        # Initialiserer grænseværdier fro temperatur og puls
+        # Initialiserer grænseværdier for temperatur og puls
         self.temperature_thresholds = {'low': None, 'high': None}
         self.pulse_thresholds = {'low': None, 'high': None}
-
 
     # Metode til at læse temperaturdata fra sensoren og gemme dem i køen
     def _read_temperature(self):
@@ -60,7 +60,6 @@ class TemperatureSensor:
     def get_temperature_thresholds(self):
         return self.temperature_thresholds
 
-
 class MyGUI:
     def __init__(self):
         self.window = tk.Tk()
@@ -93,7 +92,7 @@ class MyGUI:
         self.label_graf.grid(row=2, column=0, padx=10, pady=5)
 
         self.button_graf = tk.Button(self.window, text="Vis Opstilling-graf", font=('Arial', 12), command=self.show_graf)
-        self.button_graf.grid(row=2, column=1, padx=10, pady=5)
+        self.button_graf.grid(row=2, column=1, padx=10, pady=5, sticky=tk.W)
 
         # Knap til at udskrive data
         self.button_data = tk.Button(self.window, text="Print Data", font=('Arial', 12), command=self.print_data)
@@ -104,30 +103,26 @@ class MyGUI:
         self.frame_graf.grid(row=4, column=0, columnspan=2)
         self.frame_graf.grid_remove()
 
-        # Nedenstående oprettes grænseværdier (kritisk høj/lav og normal) MÅSKE ændre til at der popper en fane op
+        # Nedenstående oprettes grænseværdier (kritisk høj/lav og normal)
         self.button_boundaries_temp = tk.Button(self.frame_graf, text="Indtast grænseværdier for temperatur:", font=('Arial', 12), bg="lightblue", fg="black", command=self.set_temp_thresholds)
         self.button_boundaries_temp.pack(padx=10, pady=5)
 
         self.button_boundaries_puls = tk.Button(self.frame_graf, text="Indtast grænseværdier for puls:", font=('Arial', 12), bg="lightblue", fg="black", command=self.set_pulse_thresholds)
         self.button_boundaries_puls.pack(padx=10, pady=5)
 
-     def set_temp_thresholds(self):
-            # Indtastning af grænseværdier for temperatur
-            low_temp = simpledialog.askfloat("Grænseværdier for temperatur", "Indtast den lave grænseværdi for temperatur:")
-            high_temp = simpledialog.askfloat("Grænseværdier for temperatur", "Indtast den høje grænseværdi for temperatur:")
-            self.temperature_sensor.set_temperature_thresholds(low_temp, high_temp)
-            messagebox.showinfo("Grænseværdier for temperatur", f"Grænseværdier for temperatur er blevet indstillet:\nLav: {low_temp}\nHøj: {high_temp}\n")
+    def set_temp_thresholds(self):
+        # Indtastning af grænseværdier for temperatur
+        low_temp = simpledialog.askfloat("Grænseværdier for temperatur", "Indtast den lave grænseværdi for temperatur:")
+        high_temp = simpledialog.askfloat("Grænseværdier for temperatur", "Indtast den høje grænseværdi for temperatur:")
+        self.temperature_sensor.set_temperature_thresholds(low_temp, high_temp)
+        messagebox.showinfo("Grænseværdier for temperatur", f"Grænseværdier for temperatur er blevet indstillet:\nLav: {low_temp}\nHøj: {high_temp}\n")
 
-
-
-    def show_boundaries_puls(self):
-        # Opret et nyt toplevel-vindue for grænseværdier
-        new_window = tk.Toplevel(self.window)
-        new_window.title("Grænseværdier")
-
-        # Opretter en label til at vise beskeden
-        label = tk.Label(new_window, text="Indtast grænseværdier her for puls!", font=('Arial', 12))
-        label.pack(padx=10, pady=5)
+    def set_pulse_thresholds(self):
+        # Indtastning af grænseværdier for puls
+        low_pulse = simpledialog.askfloat("Grænseværdier for puls", "Indtast den lave grænseværdi for puls:")
+        high_pulse = simpledialog.askfloat("Grænseværdier for puls", "Indtast den høje grænseværdi for puls:")
+        self.temperature_sensor.set_pulse_thresholds(low_pulse, high_pulse)
+        messagebox.showinfo("Grænseværdier for puls", f"Grænseværdier for puls er blevet indstillet:\nLav: {low_pulse}\nHøj: {high_pulse}\n")
 
     def update_temperature(self):
         # Opdaterer temperaturen
@@ -135,14 +130,37 @@ class MyGUI:
         if temperature is not None:
             # Opdaterer label med den seneste temperaturmåling
             self.label_temperature_value.config(text=f"{temperature} °C")
-        self.window.after(1000, self.update_temperature)  # Kalder metoden igen efter 1 sekund for at opdatere temperaturen kontinuerligt
+            # Tilføj den seneste temperaturmåling til temperaturdata-listen
+            self.temperature_sensor.temperature_data.append(temperature)
+            # Tjek om den seneste temperaturmåling overstiger grænseværdier
+            thresholds = self.temperature_sensor.get_temperature_thresholds()
+            if thresholds['low'] is not None and temperature < thresholds['low']:
+                messagebox.showwarning("Advarsel",
+                                       f"Temperaturen er under den lave grænseværdi: {thresholds['low']} °C")
+            if thresholds['high'] is not None and temperature > thresholds['high']:
+                messagebox.showwarning("Advarsel",
+                                       f"Temperaturen er over den høje grænseværdi: {thresholds['high']} °C")
+        self.window.after(1000,
+                          self.update_temperature)  # Kalder metoden igen efter 1 sekund for at opdatere temperaturen kontinuerligt
 
     def show_graf(self):
         if self.frame_graf.winfo_ismapped():
             self.frame_graf.grid_remove()
         else:
             self.frame_graf.grid()
+            # Når grafen vises, kald funktionen til at plotte grafen
+            self.plot_temperature_graph()
         self.window.update_idletasks()
+
+    def plot_temperature_graph(self):
+        # Plot temperaturdataene
+        plt.figure(figsize=(8, 6))
+        plt.plot(self.temperature_sensor.temperature_data, marker='o', linestyle='-')
+        plt.title('Temperature Over Time')
+        plt.xlabel('Time')
+        plt.ylabel('Temperature (°C)')
+        plt.grid(True)
+        plt.show()
 
     def print_data(self):
         messagebox.showinfo("Data", "Dette er dataen du ønsker at vise.")

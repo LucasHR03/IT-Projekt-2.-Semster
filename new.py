@@ -39,6 +39,8 @@ class TemperatureSensor:
         self.temperature_thresholds = {'low': None, 'high': None}
         self.pulse_thresholds = {'low': None, 'high': None}
 
+    def get_pulse_thresholds(self):
+        return self.pulse_thresholds  # Opdateret linje
     def _read_temperature(self):
         while True:
             try:
@@ -73,7 +75,7 @@ class MyGUI:
         self.window.title("Prototype-GUI")
         self.window.geometry("500x300")
 
-        self.temperature_sensor = TemperatureSensor('/dev/cu.usbserial-110')
+        self.temperature_sensor = TemperatureSensor('COM3')
         self.puls_maaling = Pulsmaaling(start_Puls=70, Puls_min=60, Puls_max=100, Puls_delta=5)
 
         self.create_widgets()
@@ -169,21 +171,34 @@ class MyGUI:
         self.window.update_idletasks()
 
     def plot_temperature_graph(self):
+        thresholds = self.temperature_sensor.get_temperature_thresholds()
         plt.figure(figsize=(8, 6))
         plt.plot(self.temperature_sensor.temperature_data, marker='o', linestyle='-')
         plt.title('Temperature Over Time')
         plt.xlabel('Time')
         plt.ylabel('Temperature (°C)')
         plt.grid(True)
+        if thresholds['low'] is not None:
+            plt.axhline(y=thresholds['low'], color='r', linestyle='--', label=f'Low Threshold: {thresholds["low"]} °C')
+        if thresholds['high'] is not None:
+            plt.axhline(y=thresholds['high'], color='g', linestyle='--', label=f'High Threshold: {thresholds["high"]} °C')
+        plt.legend()
         plt.show()
 
     def plot_pulse_graph(self):
+        thresholds = self.temperature_sensor.get_pulse_thresholds()  # Opdateret linje
         plt.figure(figsize=(8, 6))
         plt.plot(self.puls_maaling.puls_data, marker='o', linestyle='-')
         plt.title('Pulse Over Time')
         plt.xlabel('Time')
         plt.ylabel('Pulse (BPM)')
         plt.grid(True)
+        if thresholds['low'] is not None:
+            plt.axhline(y=thresholds['low'], color='r', linestyle='--', label=f'Low Threshold: {thresholds["low"]} BPM')
+        if thresholds['high'] is not None:
+            plt.axhline(y=thresholds['high'], color='g', linestyle='--',
+                        label=f'High Threshold: {thresholds["high"]} BPM')
+        plt.legend()
         plt.show()
 
     def print_data(self):

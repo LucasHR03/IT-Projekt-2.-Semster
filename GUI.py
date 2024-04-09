@@ -67,7 +67,7 @@ class MyGUI:
         self.window.title("Prototype-GUI")
         self.window.geometry("500x300")
 
-        self.temperature_sensor = TemperatureSensor('/dev/cu.usbserial-110')
+        self.temperature_sensor = TemperatureSensor('COM3')
 
         self.create_widgets()
         self.update_temperature()  # Start opdatering af temperaturen

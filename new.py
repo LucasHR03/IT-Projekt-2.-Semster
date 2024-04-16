@@ -9,7 +9,7 @@ import sqlite3
 
 class DatabaseManager:
     def __init__(self):
-        self.connection = sqlite3.connect("hello.db") #FEJL
+        self.connection = sqlite3.connect("pulstemp.db") #FEJL
         self.cursor = self.connection.cursor()
 
     def create_tables(self):

@@ -5,6 +5,47 @@ import queue
 import threading
 import matplotlib.pyplot as plt
 import random
+import sqlite3
+
+class DatabaseManager:
+    def __init__(self):
+        self.connection = sqlite3.connect("hello.db") #FEJL
+        self.cursor = self.connection.cursor()
+
+    def create_tables(self):
+        # Create a table for temperature data
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS TemperatureData (
+                                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                    temperature REAL,
+                                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                                )''')
+
+        # Create a table for pulse data
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS PulseData (
+                                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                    pulse REAL,
+                                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                                )''')
+
+        self.connection.commit()
+
+    def insert_temperature_data(self, temperature):
+        try:
+            self.cursor.execute('''INSERT INTO TemperatureData (temperature) VALUES (?)''', (temperature,))
+            self.connection.commit()
+        except sqlite3.Error as e:
+            print("Fejl ved indsættelse af temperaturdata:", e)
+
+    def insert_pulse_data(self, pulse):
+        try:
+            self.cursor.execute('''INSERT INTO PulseData (pulse) VALUES (?)''', (pulse,))
+            self.connection.commit()
+        except sqlite3.Error as e:
+            print("Fejl ved indsættelse af pulsdata:", e)
+
+    def close(self):
+        self.connection.close()
+
 
 class Pulsmaaling():
     def __init__(self, start_Puls, Puls_min, Puls_max, Puls_delta):
@@ -74,8 +115,8 @@ class MyGUI:
         self.window = tk.Tk()
         self.window.title("Prototype-GUI")
         self.window.geometry("500x300")
-
-        self.temperature_sensor = TemperatureSensor('COM3')
+        # Temp port ændres her
+        self.temperature_sensor = TemperatureSensor('/dev/cu.usbserial-110')
         self.puls_maaling = Pulsmaaling(start_Puls=70, Puls_min=60, Puls_max=100, Puls_delta=5)
 
         self.create_widgets()
@@ -83,6 +124,9 @@ class MyGUI:
         self.update_pulse()  # Tilføjelse: Start opdatering af puls
         self.temperature_thresholds = {'low': None, 'high': None}
         self.pulse_thresholds = {'low': None, 'high': None}
+
+        self.database_manager = DatabaseManager()
+        self.database_manager.create_tables()
 
     def create_widgets(self):
         self.label_temp = tk.Label(self.window, text="Temp-Måling:", font=('Arial', 14))
@@ -106,9 +150,6 @@ class MyGUI:
         self.button_graf_puls = tk.Button(self.window, text="Vis Puls-graf", font=('Arial', 12), command=self.show_puls_graf)
         self.button_graf_puls.grid(row=3, column=1, padx=10, pady=5, sticky=tk.W)
 
-        self.button_data = tk.Button(self.window, text="Print Data", font=('Arial', 12), command=self.print_data)
-        self.button_data.grid(row=5, column=1, padx=10, pady=10, sticky=tk.SE)
-
         self.frame_graf = tk.Frame(self.window)
         self.frame_graf.grid(row=4, column=0, columnspan=2)
         self.frame_graf.grid_remove()
@@ -120,8 +161,14 @@ class MyGUI:
         self.button_boundaries_puls.pack(padx=10, pady=5)
 
     def show_puls(self):
-        pulse = self.puls_maaling.getPuls()
-        self.label_puls_value.config(text=f"{pulse} BPM")
+        try:
+            pulse = self.puls_maaling.getPuls()
+            self.label_puls_value.config(text=f"{pulse} BPM")
+
+            # Insert pulse data into the database
+            self.database_manager.insert_pulse_data(pulse)
+        except Exception as e:
+            messagebox.showerror("Database Error", f"Error occurred while inserting pulse data: {e}")
 
     def update_pulse(self):
         self.show_puls()
@@ -147,6 +194,7 @@ class MyGUI:
         if temperature is not None:
             self.label_temperature_value.config(text=f"{temperature} °C")
             self.temperature_sensor.temperature_data.append(temperature)
+            self.database_manager.insert_temperature_data(temperature)
             thresholds = self.temperature_sensor.get_temperature_thresholds()
             if thresholds['low'] is not None and temperature < thresholds['low']:
                 messagebox.showwarning("Advarsel", f"Temperaturen er under den lave grænseværdi: {thresholds['low']} °C")
@@ -201,8 +249,6 @@ class MyGUI:
         plt.legend()
         plt.show()
 
-    def print_data(self):
-        messagebox.showinfo("Data", "Dette er dataen du ønsker at vise.")
 
     def mainloop(self):
         self.window.mainloop()

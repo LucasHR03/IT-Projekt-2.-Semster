@@ -115,6 +115,9 @@ class MyGUI:
         self.window = tk.Tk()
         self.window.title("Prototype-GUI")
         self.window.geometry("500x300")
+
+        self.database_manager = DatabaseManager()
+        self.database_manager.create_tables()
         # Temp port ændres her
         self.temperature_sensor = TemperatureSensor('/dev/cu.usbserial-110')
         self.puls_maaling = Pulsmaaling(start_Puls=70, Puls_min=60, Puls_max=100, Puls_delta=5)
@@ -125,8 +128,7 @@ class MyGUI:
         self.temperature_thresholds = {'low': None, 'high': None}
         self.pulse_thresholds = {'low': None, 'high': None}
 
-        self.database_manager = DatabaseManager()
-        self.database_manager.create_tables()
+
 
     def create_widgets(self):
         self.label_temp = tk.Label(self.window, text="Temp-Måling:", font=('Arial', 14))

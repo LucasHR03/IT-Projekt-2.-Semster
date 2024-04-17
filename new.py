@@ -55,6 +55,7 @@ class Pulsmaaling():
         self.Puls_delta = Puls_delta
         self.puls_data = []
         self.puls_queue = queue.Queue()
+        self.pulse_thresholds = {'low': None, 'high': None}
 
 
     def getPuls(self):
@@ -68,8 +69,11 @@ class Pulsmaaling():
         pulse = round(self.start_Puls, 2)
         self.puls_data.append(pulse)  # Tilføjelse: Opdater puls_data-listen
         return pulse
-
-
+    def get_pulse_thresholds(self):
+        return self.pulse_thresholds  # Opdateret linje
+    def set_pulse_thresholds(self, low, high):
+        self.pulse_thresholds['low'] = low
+        self.pulse_thresholds['high'] = high
 class TemperatureSensor:
     def __init__(self, port):
         self.port = port
@@ -80,8 +84,7 @@ class TemperatureSensor:
         self.temperature_thresholds = {'low': None, 'high': None}
         self.pulse_thresholds = {'low': None, 'high': None}
 
-    def get_pulse_thresholds(self):
-        return self.pulse_thresholds  # Opdateret linje
+
     def _read_temperature(self):
         while True:
             try:
@@ -103,9 +106,6 @@ class TemperatureSensor:
         self.temperature_thresholds['low'] = low
         self.temperature_thresholds['high'] = high
 
-    def set_pulse_thresholds(self, low, high):
-        self.pulse_thresholds['low'] = low
-        self.pulse_thresholds['high'] = high
 
     def get_temperature_thresholds(self):
         return self.temperature_thresholds
@@ -256,3 +256,4 @@ class MyGUI:
         self.window.mainloop()
 
 MyGUI().mainloop()
+

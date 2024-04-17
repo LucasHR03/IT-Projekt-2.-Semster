@@ -9,7 +9,7 @@ import sqlite3
 
 class DatabaseManager:
     def __init__(self):
-        self.connection = sqlite3.connect("pulstemp.db")
+        self.connection = sqlite3.connect("pulstemp1.db")
         self.cursor = self.connection.cursor()
 
     def create_tables(self):
@@ -180,6 +180,11 @@ class MyGUI:
         # Indtastning af grænseværdier for temperatur
         low_temp = simpledialog.askfloat("Grænseværdier for temperatur", "Indtast den lave grænseværdi for temperatur:")
         high_temp = simpledialog.askfloat("Grænseværdier for temperatur", "Indtast den høje grænseværdi for temperatur:")
+        if low_temp < 36:
+            messagebox.showwarning("Advarsel", "Temperaturen er under 36°C, hvilket er unormalt lavt!")
+        if high_temp > 39:
+            messagebox.showwarning("Advarsel", "Temperaturen overstiger 39°C, hvilket er unormalt højt!")
+
         self.temperature_sensor.set_temperature_thresholds(low_temp, high_temp)
         messagebox.showinfo("Grænseværdier for temperatur", f"Grænseværdier for temperatur er blevet indstillet:\nLav: {low_temp}\nHøj: {high_temp}\n")
 
@@ -187,6 +192,14 @@ class MyGUI:
         # Indtastning af grænseværdier for puls
         low_pulse = simpledialog.askfloat("Grænseværdier for puls", "Indtast den lave grænseværdi for puls:")
         high_pulse = simpledialog.askfloat("Grænseværdier for puls", "Indtast den høje grænseværdi for puls:")
+
+        if low_pulse < 50:
+            messagebox.showwarning("Advarsel",
+                                   "Hvilepulsen er under 50 BPM, hvilket er unormalt lavt!")
+        if high_pulse > 100:
+            messagebox.showwarning("Advarsel", "Hvilepulsen er over 100 BPM, hvilket er unormalt højt!")
+
+
         self.temperature_sensor.set_pulse_thresholds(low_pulse, high_pulse)
         messagebox.showinfo("Grænseværdier for puls", f"Grænseværdier for puls er blevet indstillet:\nLav: {low_pulse}\nHøj: {high_pulse}\n")
 
@@ -236,7 +249,7 @@ class MyGUI:
         plt.show()
 
     def plot_pulse_graph(self):
-        thresholds = self.temperature_sensor.get_pulse_thresholds()  # Opdateret linje
+        thresholds = self.puls_maaling.get_pulse_thresholds()  # Opdateret linje
         plt.figure(figsize=(8, 6))
         plt.plot(self.puls_maaling.puls_data, marker='o', linestyle='-')
         plt.title('Pulse Over Time')

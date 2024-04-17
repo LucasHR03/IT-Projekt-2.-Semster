@@ -146,21 +146,27 @@ class MyGUI:
         self.label_graf = tk.Label(self.window, text="Opstilling-graf:", font=('Arial', 14))
         self.label_graf.grid(row=2, column=0, padx=10, pady=5)
 
-        self.button_graf = tk.Button(self.window, text="Vis Temp-graf", font=('Arial', 12), command=self.show_temp_graf)
-        self.button_graf.grid(row=2, column=1, padx=10, pady=5, sticky=tk.W)
+        self.button_graf_temp = tk.Button(self.window, text="Vis Temp-graf", font=('Arial', 12), command=self.show_temp_graf)
+        self.button_graf_temp.grid(row=2, column=1, padx=10, pady=5, sticky=tk.W)
+
+        self.button_boundaries_temp = tk.Button(self.window, text="Indtast grænseværdier for temperatur:", font=('Arial', 12), bg="lightblue", fg="black",command=self.set_temp_thresholds)
+        self.button_boundaries_temp.grid(row=2, column=2, padx=10, pady=5, sticky=tk.W)
 
         self.button_graf_puls = tk.Button(self.window, text="Vis Puls-graf", font=('Arial', 12), command=self.show_puls_graf)
         self.button_graf_puls.grid(row=3, column=1, padx=10, pady=5, sticky=tk.W)
+
+        self.button_boundaries_puls = tk.Button(self.window, text="Indtast grænseværdier for puls:", font=('Arial', 12), bg="lightblue", fg="black", command=self.set_pulse_thresholds)
+        self.button_boundaries_puls.grid(row=3, column=2, padx=10, pady=5, sticky=tk.W)
+
+
 
         self.frame_graf = tk.Frame(self.window)
         self.frame_graf.grid(row=4, column=0, columnspan=2)
         self.frame_graf.grid_remove()
 
-        self.button_boundaries_temp = tk.Button(self.frame_graf, text="Indtast grænseværdier for temperatur:", font=('Arial', 12), bg="lightblue", fg="black", command=self.set_temp_thresholds)
-        self.button_boundaries_temp.pack(padx=10, pady=5)
 
-        self.button_boundaries_puls = tk.Button(self.frame_graf, text="Indtast grænseværdier for puls:", font=('Arial', 12), bg="lightblue", fg="black", command=self.set_pulse_thresholds)
-        self.button_boundaries_puls.pack(padx=10, pady=5)
+
+
 
     def show_puls(self):
         try:
@@ -194,8 +200,9 @@ class MyGUI:
         high_pulse = simpledialog.askfloat("Grænseværdier for puls", "Indtast den høje grænseværdi for puls:")
 
         if low_pulse < 50:
-            messagebox.showwarning("Advarsel",
-                                   "Hvilepulsen er under 50 BPM, hvilket er unormalt lavt!")
+            messagebox.showwarning("Advarsel","Hvilepulsen er under 50 BPM, hvilket er unormalt lavt!")
+
+
         if high_pulse > 100:
             messagebox.showwarning("Advarsel", "Hvilepulsen er over 100 BPM, hvilket er unormalt højt!")
 

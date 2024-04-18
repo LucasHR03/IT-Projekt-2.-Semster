@@ -207,7 +207,7 @@ class MyGUI:
             messagebox.showwarning("Advarsel", "Hvilepulsen er over 100 BPM, hvilket er unormalt højt!")
 
 
-        self.temperature_sensor.set_pulse_thresholds(low_pulse, high_pulse)
+        self.puls_maaling.set_pulse_thresholds(low_pulse, high_pulse)
         messagebox.showinfo("Grænseværdier for puls", f"Grænseværdier for puls er blevet indstillet:\nLav: {low_pulse}\nHøj: {high_pulse}\n")
 
 

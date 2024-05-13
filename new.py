@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import random
 import sqlite3
 
-# DatabaseMangaer klasse håndterer oprettelse af tabeller og indsættelse af data i databasen.
+# DatabaseManger klasse håndterer oprettelse af tabeller og indsættelse af data i databasen.
 class DatabaseManager:
     def __init__(self):
         self.connection = sqlite3.connect("pulstemp1.db")
@@ -97,7 +97,7 @@ class TemperatureSensor:
             try:
                 with serial.Serial(self.port, 9600, timeout=1) as ser:
                     while True:
-                        temperature_reading = ser.readline().decode('utf-8').strip()
+                        temperature_reading = ser.readline().decode('utf-8').strip() #UTf-8 bruges til at konvertere bytes til UTF-8 strenget så computeren forstår
                         if temperature_reading:
                             temperature_value = temperature_reading.strip('+').rstrip('C')
                             self.temperature_queue.put(float(temperature_value))

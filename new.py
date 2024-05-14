@@ -20,7 +20,7 @@ class DatabaseManager:
                                     temperature REAL,
                                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                                 )''')
-
+#'real' repræsentere numeriske værdier
         # Opret en tabel til puls-data
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS PulseData (
                                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -89,7 +89,6 @@ class TemperatureSensor:
         self.reading_thread = threading.Thread(target=self._read_temperature, daemon=True)
         self.reading_thread.start()
         self.temperature_thresholds = {'low': None, 'high': None}
-        self.pulse_thresholds = {'low': None, 'high': None}
 
     # Funktionen _read_temperature læser kontinuerligt temperaturdata fra sensor
     def _read_temperature(self):
@@ -285,8 +284,8 @@ class MyGUI:
         plt.show()
 
     # Funktionen mainloop starter GUI-hovedloop
-    def mainloop(self):
-        self.window.mainloop()
+    def mainloop(self): # Metode der kaldes for at starte GUI-hoved løkke. Her 'lyttes' der til events fra brugeren
+        self.window.mainloop() # Programmet forsætter med at lukke indtil brugeren slukker/lukker applikation
 
 # Start GUI
 MyGUI().mainloop()

@@ -79,14 +79,14 @@ class Pulsmaaling():
     def set_pulse_thresholds(self, low, high):
         self.pulse_thresholds['low'] = low
         self.pulse_thresholds['high'] = high
-
+2
 # TemperaturSensor klassen håndterer temperatursensor og temperaturdata
 class TemperatureSensor:
     def __init__(self, port):
         self.port = port
         self.temperature_data = []
         self.temperature_queue = queue.Queue()
-        self.reading_thread = threading.Thread(target=self._read_temperature, daemon=True)
+        self.reading_thread = threading.Thread(target=self._read_temperature, daemon=True) #oprettelse af tråd # Daemon er en process der kører i baggrunden
         self.reading_thread.start()
         self.temperature_thresholds = {'low': None, 'high': None}
 
@@ -108,11 +108,11 @@ class TemperatureSensor:
             return self.temperature_queue.get()
         return None
 
-    # Funktionen set_temperature_thresholds sætter temperaturgrænseværdier
+    # Funktionen set_temperature_thresholds indstiller temperaturgrænseværdier
     def set_temperature_thresholds(self, low, high):
         self.temperature_thresholds['low'] = low
         self.temperature_thresholds['high'] = high
-
+        # self.temperature_thresholds opdateres
     # Funktionen get_temperature_thresholds returnerer temperaturgrænseværdier
     def get_temperature_thresholds(self):
         return self.temperature_thresholds
